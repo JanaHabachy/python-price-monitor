@@ -143,6 +143,8 @@ def main():
 
     print("Starting price monitor...\n")
 
+    send_telegram("Test message: Telegram notifications are working.")
+
     data = scrape_prices()
 
     save_report(data)
