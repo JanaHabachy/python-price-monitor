@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 from datetime import datetime
 from bs4 import BeautifulSoup
 from send_email import send_email
+from send_telegram import send_telegram
 
 
 def scrape_prices():
@@ -60,7 +61,6 @@ def check_price_changes(data):
     file_path = "data/price_history.csv"
 
     if not os.path.exists(file_path):
-
         return pd.DataFrame()
 
     history = pd.read_csv(file_path)
@@ -134,41 +134,6 @@ def generate_price_charts():
 
     print(f"Generated charts for {len(products)} products")
 
-    history_file = "data/price_history.csv"
-
-    if not os.path.exists(history_file):
-        print("No price history found. Skipping charts.")
-        return
-
-    df = pd.read_csv(history_file)
-
-    # Convert date to datetime
-    df['date'] = pd.to_datetime(df['date'])
-
-    # Ensure reports folder exists
-    os.makedirs("reports/charts", exist_ok=True)
-
-    products = df['title'].unique()
-
-    for product in products:
-
-        product_df = df[df['title'] == product].sort_values('date')
-
-        plt.figure(figsize=(8,4))
-        plt.plot(product_df['date'], product_df['price'], marker='o')
-        plt.title(f'Price Trend: {product}')
-        plt.xlabel('Date')
-        plt.ylabel('Price (£)')
-        plt.xticks(rotation=45)
-        plt.tight_layout()
-
-        file_name = f"reports/charts/{product[:50].replace('/', '_')}.png"
-        plt.savefig(file_name)
-        plt.close()
-
-    print(f"Generated charts for {len(products)} products")
-
-
 
 def main():
 
@@ -186,11 +151,20 @@ def main():
 
     if not changes.empty:
 
-        message = f"""Price changes detected!{changes.to_string(index=False)}"""
+        message = f"""Price changes detected!
 
-        print("Price change detected! Sending email alert...")
+{changes.to_string(index=False)}
+"""
 
+        print("Price change detected! Sending notifications...")
+
+        # Email notification
         send_email(message)
+
+        # Telegram notification
+        send_telegram(message)
+
+        print("Email and Telegram alerts sent.")
 
     else:
 
