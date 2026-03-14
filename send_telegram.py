@@ -1,8 +1,12 @@
 import asyncio
+import os
 from telegram import Bot
+from dotenv import load_dotenv
 
-TOKEN = "8755719581:AAEubJ7IHYqsyybgZqHwinAvK6GuOnf_2mc"
-CHAT_ID = 1096499420
+load_dotenv()  # loads variables from .env
+
+TOKEN = os.getenv("TELEGRAM_TOKEN")
+CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
 
 async def send_async(message):
     bot = Bot(token=TOKEN)
@@ -10,4 +14,8 @@ async def send_async(message):
 
 
 def send_telegram(message):
-    asyncio.run(send_async(message))
+    try:
+        asyncio.run(send_async(message))
+        print("Telegram message sent.")
+    except Exception as e:
+        print(f"Telegram notification failed: {e}")

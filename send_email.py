@@ -1,13 +1,15 @@
 import smtplib
+import os
 from email.mime.text import MIMEText
+from dotenv import load_dotenv
 
 
 def send_email(message):
 
-    sender = "jana.habachy@gmail.com"
-    password = "bwqmjkmefxzarvme"
+    sender = os.getenv("EMAIL_ADRESS")
+    password = os.getenv("EMAIL_APP_PASSWORD")
 
-    receiver = "aya.habachi02@gmail.com"
+    receiver = "jana.habachy@icloud.com"
 
     msg = MIMEText(message)
 
