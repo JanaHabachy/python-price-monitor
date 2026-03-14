@@ -153,10 +153,7 @@ def main():
 
     if not changes.empty:
 
-        message = f"""Price changes detected!
-
-{changes.to_string(index=False)}
-"""
+        message = f"""Price changes detected! {changes.to_string(index=False)}"""
 
         print("Price change detected! Sending notifications...")
 
