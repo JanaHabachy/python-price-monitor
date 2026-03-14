@@ -1,4 +1,3 @@
-# price_monitor.py
 import os
 import pandas as pd
 import re
@@ -6,10 +5,21 @@ import matplotlib.pyplot as plt
 from datetime import datetime
 from send_email import send_email
 from send_telegram import send_telegram
-from scraper import scrape_prices  # Import from scraper.py
+from scraper import scrape_prices  # Refactored scraping
 
 def save_report(data):
     df = pd.DataFrame(data)
+    df["date"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    # Optional: compute price change if history exists
+    history_file = "data/price_history.csv"
+    if os.path.exists(history_file):
+        history = pd.read_csv(history_file)
+        latest = history.sort_values("date").groupby("title").tail(1)
+        merged = df.merge(latest[['title', 'price']], on="title", how="left", suffixes=('', '_old'))
+        merged['price_change'] = merged['price'] - merged['price_old'].fillna(merged['price'])
+        df = merged.drop(columns=['price_old'])
+
     report_path = "reports/price_report.xlsx"
     df.to_excel(report_path, index=False)
     print(f"Report saved to {report_path}")
@@ -18,7 +28,6 @@ def check_price_changes(data):
     file_path = "data/price_history.csv"
     if not os.path.exists(file_path):
         return pd.DataFrame()
-
     history = pd.read_csv(file_path)
     latest = history.sort_values("date").groupby("title").tail(1)
     current = pd.DataFrame(data)
@@ -50,12 +59,19 @@ def generate_price_charts():
     for product in products:
         product_df = df[df['title'] == product].sort_values('date')
         plt.figure(figsize=(8,4))
-        plt.plot(product_df['date'], product_df['price'], marker='o')
+        plt.plot(product_df['date'], product_df['price'], marker='o', color='green')
         plt.title(f'Price Trend: {product}')
         plt.xlabel('Date')
         plt.ylabel('Price (£)')
         plt.xticks(rotation=45)
         plt.tight_layout()
+
+        # Highlight decreases in red on the chart
+        decreases = product_df[product_df['price'].diff() < 0]
+        if not decreases.empty:
+            plt.scatter(decreases['date'], decreases['price'], color='red', label='Price Decrease')
+            plt.legend()
+
         safe_title = re.sub(r'[\\/*?:"<>|]', "_", product[:50])
         file_name = f"reports/charts/{safe_title}.png"
         plt.savefig(file_name)
@@ -70,27 +86,33 @@ def main():
 
     print("Starting price monitor...\n")
 
-    send_telegram("Test message: Telegram notifications are working.")
-
-    data = scrape_prices()  # now uses scraper.py
-
+    data = scrape_prices()
     save_report(data)
-
     changes = check_price_changes(data)
 
+    # Prepare the message with timestamp
+    now_str = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     if not changes.empty:
-        message = f"""Price changes detected! {changes.to_string(index=False)}"""
-        print("Price change detected! Sending notifications...")
-        send_email(message)
-        send_telegram(message)
-        print("Email and Telegram alerts sent.")
+        # Highlight only decreases for notifications
+        decreases = changes[changes['price_new'] < changes['price_old']]
+        if not decreases.empty:
+            message_lines = [f"{now_str} : Price decreases detected:"]
+            for _, row in decreases.iterrows():
+                line = f"📚 **{row['title']}**: £{row['price_old']} → £{row['price_new']}"
+                message_lines.append(line)
+            message = "\n".join(message_lines)
+        else:
+            message = f"{now_str} : No price decreases detected, only increases or unchanged prices."
     else:
-        print("No price changes detected.")
+        message = f"{now_str} : No price changes detected."
+
+    print(message)
+    send_email(message)
+    send_telegram(message)
+    print("Email and Telegram alerts sent.")
 
     save_current_prices(data)
-
     print("\nPrice monitoring completed.")
-
     generate_price_charts()
 
 if __name__ == "__main__":

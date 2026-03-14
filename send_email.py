@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 
 def send_email(message):
 
-    sender = os.getenv("EMAIL_ADRESS")
+    sender = os.getenv("EMAIL_ADDRESS")
     password = os.getenv("EMAIL_APP_PASSWORD")
 
     receiver = "jana.habachy@icloud.com"
