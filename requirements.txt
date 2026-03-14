@@ -1,4 +1,7 @@
-requests
-beautifulsoup4
-pandas
-openpyxl
+requests==2.32.5
+beautifulsoup4==4.14.3
+pandas==2.2.3
+openpyxl==3.1.5
+matplotlib==3.10.1
+python-dotenv==1.2.2
+python-telegram-bot==22.6
