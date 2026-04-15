@@ -20,8 +20,13 @@ Key features include:
    - Detects changes compared to previously stored prices.  
 
 2. **Notifications**  
-   - **Email:** Sends a detailed alert to your email when price changes occur.  
-   - **Telegram:** Sends the same alert via a Telegram bot.  
+   - **Email:** Sends a detailed alert to your email when price changes occur.
+   - **Telegram:** Sends the same alert via a Telegram bot.
+
+     <img width="590" height="1280" alt="image" src="https://github.com/user-attachments/assets/3e1dab84-e9d0-4156-9838-25968ee3d1d0" />
+     <img width="1433" height="866" alt="image" src="https://github.com/user-attachments/assets/7a2354d9-4ffa-4220-ad84-b743b4b839fc" />
+
+
 
 3. **Reports & Charts**  
    - Saves product prices to `reports/price_report.xlsx`.  
